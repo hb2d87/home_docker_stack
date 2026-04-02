@@ -1,0 +1,39 @@
+networks:
+  homelab_net:
+    name: homelab_net
+    external: true
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg17
+    container_name: data_stack_postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - ${APP_DATA_DIR}/postgres_data:/var/lib/postgresql/data
+    networks:
+      - homelab_net
+
+  pg_backup:
+    image: prodrigestivill/postgres-backup-local:latest
+    container_name: data_stack_pg_backup
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB},n8n,dify
+      SCHEDULE: "@every 6h"
+      BACKUP_KEEP_DAYS: 2
+      BACKUP_KEEP_WEEKS: 13
+    volumes:
+      - ${APP_DATA_DIR}/postgres_backups:/backups
+    networks:
+      - homelab_net

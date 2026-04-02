@@ -1,0 +1,37 @@
+networks:
+  homelab_net:
+    external: true
+
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: ai_stack_n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=data_stack_postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=n8n
+      - DB_POSTGRESDB_USER=${POSTGRES_USER}
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+      - N8N_ENCRYPTION_KEY=${N8N_ENCRYPTION_KEY}
+    volumes:
+      - ${APP_DATA_DIR}/n8n_data:/home/node/.n8n
+    networks:
+      - homelab_net
+
+  opencode:
+    image: lscr.io/linuxserver/code-server:latest
+    container_name: ai_stack_opencode
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    ports:
+      - "8443:8443"
+    volumes:
+      - ${APP_DATA_DIR}/opencode_config:/config
+      - ${WORKSPACE_DIR}:/workspace/opt

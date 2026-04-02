@@ -1,0 +1,24 @@
+# 🛑 GLOBAL DENY: Ignore everything by default
+*
+
+# ✅ ALLOW-LIST: Essential configuration and documentation
+!.gitignore
+!README.md
+!.env.example
+
+# ✅ ALLOW-LIST: Permit directory traversal
+!*/
+
+# ✅ ALLOW-LIST: Compose files and YAML configurations
+!**/*.yml
+!**/*.yaml
+
+# 🛑 RE-IGNORE: Ensure no data or secrets sneak in via allowed extensions
+**/.env
+**/data/**
+**/logs/**
+**/backups/**
+**/postgres_data/**
+**/postgres_backups/**
+**/*.sql
+**/*.log
