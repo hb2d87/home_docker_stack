@@ -1,38 +1,44 @@
 services:
+  # --- SYNCING ---
   syncthing:
     image: syncthing/syncthing:latest
     container_name: util_syncthing
     restart: unless-stopped
     environment:
-      - PUID=${PUID}
-      - PGID=${PGID}
-      - TZ=${TZ}
+      - PUID=1000
+      - PGID=1000
     ports:
       - "8384:8384"
       - "22000:22000/tcp"
       - "22000:22000/udp"
     volumes:
-      - ${APP_DATA_DIR}/syncthing_config:/var/syncthing/config
-      - ${USER_HOME_DIR}:/var/syncthing/home
+      - /opt/app_data/syncthing_config:/var/syncthing/config
+      - /home/hb2d:/var/syncthing/home 
 
+  # --- MANAGEMENT ---
   filebrowser:
     image: filebrowser/filebrowser:latest
     container_name: util_filebrowser
     restart: unless-stopped
-    user: "${PUID}:${PGID}"
+    user: "1000:1000"
     ports:
-      - "8136:8080"
+      - "8136:8080" # Mapping host 8136 to internal 8080
+    command: ["--port", "8080", "--database", "/database/filebrowser.db", "--root", "/srv"]
     volumes:
-      - ${USER_HOME_DIR}:/srv
-      - ${APP_DATA_DIR}/filebrowser_data/filebrowser.db:/database.db
-      - ${APP_DATA_DIR}/filebrowser_config/settings.json:/config/settings.json
+      - /home/hb2d:/srv
+      - /opt/app_data/filebrowser_data:/database # Mount the folder, not the .db file
+      - /opt/app_data/filebrowser_config:/config # Mount the folder, not the .json file
 
+  # --- WRITING ---
   silverbullet:
     image: zefhemel/silverbullet:latest
     container_name: util_silverbullet
     restart: unless-stopped
+    environment:
+      # FIX: Ensure SB_AUTH in your vault is literally "user:password"
+      - SB_USER=${SB_AUTH} 
     ports:
       - "3030:3000"
     volumes:
-      - ${USER_HOME_DIR}/obsidian:/space
-      - ${APP_DATA_DIR}/silverbullet_data:/config
+      - /home/hb2d/obsidian:/space
+      - /opt/app_data/silverbullet_data:/config
